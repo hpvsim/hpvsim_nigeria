@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.sim
+*.msim
+*.obj
+!results/nigeria_pars.obj
+raw_results/*
+!raw_results/.gitkeep
+figures/*
+!figures/.gitkeep
+.DS_Store
