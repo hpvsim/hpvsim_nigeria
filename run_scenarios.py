@@ -87,23 +87,27 @@ def who_interventions():
         treat_coverage=0.90, cancer_tx_coverage=0.90)
 
 
-def run_scenarios(end=END_SIM, seed=1, do_save=True):
+def run_scenarios(end=END_SIM, n_seeds=3, do_save=True):
+    """Run each scenario across `n_seeds` seeds; return {name: MultiSim}.
+
+    Interventions are rebuilt per seed (they bind to a sim on init).
+    """
     calib_pars = sc.loadobj('results/nigeria_pars.obj')
     calib_pars.pop('hiv_pars', None)
-    scenarios = {'Baseline': baseline_interventions(), 'WHO': who_interventions()}
-    sims = []
-    for name, intvs in scenarios.items():
-        sim = rs.make_sim(calib_pars=calib_pars, interventions=intvs, end=end, seed=seed)
-        sim.label = name
-        sims.append(sim)
-    msim = hpv.MultiSim(sims)
-    msim.run()
+    builders = {'Baseline': baseline_interventions, 'WHO': who_interventions}
+    msims = sc.objdict()
+    for name, build in builders.items():
+        sims = [rs.make_sim(calib_pars=calib_pars, interventions=build(), end=end, seed=s)
+                for s in range(n_seeds)]
+        msim = hpv.MultiSim(sims)
+        msim.run()
+        msims[name] = msim
     if do_save:
-        sc.saveobj('results/nigeria_scenarios.msim', msim)
-    return msim
+        sc.saveobj('results/nigeria_scenarios.obj', msims)
+    return msims
 
 
 if __name__ == '__main__':
     T = sc.timer()
-    msim = run_scenarios(end=END_SIM)
+    msims = run_scenarios(end=END_SIM, n_seeds=3)
     T.toc('Done')
