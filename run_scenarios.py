@@ -30,7 +30,10 @@ def _ramp(v0, v1, y0=RAMP0, y1=RAMP1):
 
 
 def _annual_screen_prob(cov):
-    """Screening coverage (30-50, rescreen every 5y) -> annual probability."""
+    """Convert target screening coverage of women 30-50 to a per-year screening
+    probability (hpvsim convention from the source repos: denominator = half the
+    20-year age span). The 5-year re-screen interval is enforced separately by the
+    screening eligibility function."""
     return 1 - (1 - np.asarray(cov)) ** (1 / ((50 - 30) / 2))
 
 
