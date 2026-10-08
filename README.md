@@ -1,7 +1,7 @@
 # hpvsim_nigeria
 
 An [HPVsim](https://hpvsim.org) model of cervical cancer for Nigeria. Built on
-**hpvsim v2.3.0**. Ported from the `hpvsim_pxv_younger` analysis repo.
+**hpvsim v3.2**.
 
 ## Install
 
@@ -9,18 +9,19 @@ An [HPVsim](https://hpvsim.org) model of cervical cancer for Nigeria. Built on
 pip install -r requirements.txt
 ```
 
-Requires `hpvsim==2.3.0`.
-
 ## What's here
 
 | File | Purpose |
 |------|---------|
-| `run_sim.py` | Defines the Nigeria simulation (`make_sim`, `run_sim`). Nigeria-specific parameters (sexual behaviour, layer probabilities) are inlined here; mixing and initial conditions use hpvsim defaults. |
-| `run_calibration.py` | Calibrates the model to Nigeria data (`hpv.Calibration`). |
-| `run_scenarios.py` | Baseline vs WHO scale-up scenarios. |
+| `run_sim.py` | Defines the Nigeria simulation (`make_sim`, `run_sim`), with network pars fit to the 2018 Nigeria DHS. |
+| `run_calibration.py` | Calibrates the model to Nigeria data (`hpv.Calibration`, 14-param nested prior). |
+| `run_scenarios.py` | Three scenarios: no interventions, status quo, WHO 90-70-90 by 2030. |
+| `plot_scenarios.py` | Renders the ASR median + 10-90% band across scenarios. |
 | `utils.py` | Fonts and calibration datafiles. |
 | `data/` | Calibration targets (cancer cases, CIN/cancer genotype distributions, ASR, HPV prevalence). |
-| `results/nigeria_pars.obj` | Calibrated parameter set (validated under v2.3.0). |
+| `results/nigeria_pars.obj` | Best-fit parameter set (v3.2). |
+| `results/nigeria_calib.obj` | Shrunken calibration object (top-100 trials). |
+| `results/nigeria_pars_all.obj` | Top-100 flat parsets for scenario uncertainty propagation. |
 | `tests/` | Smoke + validation tests. |
 
 ## Data provenance
@@ -31,38 +32,45 @@ Requires `hpvsim==2.3.0`.
   cancers / CIN (ICO/IARC HPV Information Centre).
 - `nigeria_hpv_prevalence.csv` — HPV/precancer prevalence (validation check).
 
-Data and the calibration framework were ported from `hpvsim_pxv_younger`.
-
 ## How to run
 
 ```bash
-python run_sim.py                 # single baseline run + plot (local)
+python run_sim.py               # single baseline run + plot (local)
 
 # Calibration — RUN only on a multi-core VM (edit `to_run` in the file):
-python run_calibration.py         # 'plot_calibration' extracts/plots locally;
-                                  # 'run_calibration' fits (VM only)
+python run_calibration.py       # 'plot_calibration' extracts/plots locally;
+                                # 'run_calibration' fits (VM only, ~15 min)
 
-python run_scenarios.py           # Baseline vs WHO comparison (2100 horizon)
+python plot_scenarios.py        # 3 scenarios × 3 seeds + ASR figure (~8 min local)
 ```
 
-> **Calibration compute:** the calibration is only fast on multi-core machines. Run the
-> `run_calibration` step on a VM; use `plot_calibration` locally to extract the best
-> parameters into `results/nigeria_pars.obj`.
+> **Calibration compute:** the calibration runs 2000 Optuna trials × 64 workers.
+> Fast only on a multi-core VM. Use `plot_calibration` locally to extract the
+> best parameters into `results/nigeria_pars.obj`.
 
 ## Calibration status
 
 The parameter set in `results/nigeria_pars.obj` reproduces the repo's ASR target
-(model ≈ 17.9 vs target 18.4 per 100,000, 2020) under hpvsim v2.3.0 — see
+under hpvsim v3.2 (model ≈ 19.2 vs target 18.4 per 100,000, 2020) — see
 `tests/test_baseline.py`.
 
 > **Note on absolute incidence:** this model is calibrated to cervical-cancer **case
 > counts and genotype distributions**, which yield an ASR of ~18/100,000. A separate
 > Globocan headline figure for Nigeria is higher (~26/100,000). The difference is a
-> choice of calibration target, not a version effect — running the same calibrated
-> parameters on hpvsim v2.2.6 and v2.3.0 gives identical results.
+> choice of calibration target, not a version effect.
+
+## Scenarios
+
+| Scenario | Vax | Screening | Treatment |
+|----------|-----|-----------|-----------|
+| No interventions | — | — | — |
+| Status quo | Historical 2023-25 ramp to 60%, held | 15% lifetime | 50% cascade coverage |
+| WHO 90-70-90 by 2030 | Linear ramp 60→90% by 2030 | Linear ramp 15→70% lifetime | Linear ramp 50→90% |
+
+Linear scale-ups all run 2025 → 2030, then hold through 2100.
 
 ## Testing
 
 ```bash
-pytest tests/                     # full suite, incl. ~1-2 min ASR validation
+pytest tests/                   # full suite incl. baseline ASR validation
 ```
