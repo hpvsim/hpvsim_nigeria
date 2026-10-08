@@ -2,7 +2,7 @@
 
 Runs each scenario across several seeds and plots the median with a 10-90%
 uncertainty band, reproducing the partner's figure format with the
-v2.3.0-calibrated model.
+v3.2-calibrated model.
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,8 +15,8 @@ COLORS = {'Baseline': '#c0392b', 'WHO': '#2980b9'}
 
 def _band(msim):
     """Return (year, median, low, high) ASR across the MultiSim's seeds."""
-    yr = np.array(msim.sims[0].results['year'])
-    arrs = np.array([np.array(s.results['asr_cancer_incidence']) for s in msim.sims])
+    yr = np.asarray(msim.sims[0].results['all_hpv']['timevec'])
+    arrs = np.array([np.asarray(s.results['all_hpv']['asr_cancer_incidence']) for s in msim.sims])
     return yr, np.median(arrs, 0), np.percentile(arrs, 10, 0), np.percentile(arrs, 90, 0)
 
 
@@ -31,7 +31,7 @@ def main(n_seeds=N_SEEDS):
         ax.plot(yr[m], med[m], lw=2.5, color=COLORS[name], label=name)
         print(f'{name}: ASR 2020={med[np.argmin(abs(yr-2020))]:.1f} '
               f'2050={med[np.argmin(abs(yr-2050))]:.1f} 2100={med[np.argmin(abs(yr-2100))]:.1f}')
-    ax.set_title('HPVsim v2.3.0: Cervical cancer incidence per 100k women (ASR) — Nigeria',
+    ax.set_title('HPVsim v3.2: Cervical cancer incidence per 100k women (ASR) — Nigeria',
                  fontsize=13, fontweight='bold')
     ax.set_xlabel('Year')
     ax.set_ylabel('ASR cancer incidence (per 100,000)')

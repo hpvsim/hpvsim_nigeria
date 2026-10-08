@@ -3,7 +3,10 @@ __pycache__/
 *.sim
 *.msim
 *.obj
+# Two-tier calibration artifacts (shrunk goes to results/, full to raw_results/)
 !results/nigeria_pars.obj
+!results/nigeria_pars_all.obj
+!results/nigeria_calib.obj
 raw_results/*
 !raw_results/.gitkeep
 figures/*
