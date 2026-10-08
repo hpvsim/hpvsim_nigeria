@@ -5,15 +5,14 @@ import pytest
 import sciris as sc
 import run_sim as rs
 
-# data/nigeria_asr_cancer_incidence.csv. Note: this is the repo's calibration
-# target; a separate Globocan figure (~26.2) is higher — the model is calibrated
-# to case counts + genotype distributions, which yield ASR ~18.
+# Calibration target from data/nigeria_asr_cancer_incidence.csv. A separate
+# Globocan figure (~26.2) is higher — the model is calibrated to case counts +
+# genotype distributions, which yield ASR ~18.
 TARGET_ASR_2020 = 18.4
 
 
 def _has_v3_pars(path='results/nigeria_pars.obj'):
-    """v2 pars files have top-level 'genotype_pars' / 'sev_dist' / 'hiv_pars';
-    v3 uses nested 'network' / 'cross_immunity' / genotype keys."""
+    """True if a nested-v3 pars file exists at ``path``."""
     if not os.path.exists(path):
         return False
     try:
@@ -42,7 +41,7 @@ def test_pars_load():
 
 @pytest.mark.skipif(not HAS_V3_PARS, reason='awaiting v3 recalibration artifacts')
 def test_baseline_asr_in_range():
-    """Full-resolution baseline ASR near the calibration target (18.4/100k)."""
+    """Full-resolution baseline ASR near the calibration target."""
     pars = sc.loadobj('results/nigeria_pars.obj')
     sim = rs.make_sim(pars=pars, stop=2020, debug=0)
     sim.run()

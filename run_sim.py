@@ -1,11 +1,4 @@
-"""
-Define the HPVsim simulation for Nigeria (hpvsim v3.2).
-
-Nigeria-specific parameters are inlined here (single-country repo convention).
-Parameter medians were fit to the 2018 Nigeria DHS; the calibration priors
-live in run_calibration.py and the committed best-par set in
-results/nigeria_pars.obj (regenerated under v3).
-"""
+"""HPVsim simulation for Nigeria."""
 import os
 os.environ.update(
     OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1',
@@ -21,11 +14,8 @@ import hpvsim as hpv
 LOCATION = 'nigeria'
 
 
-# Marital ('m') and casual ('c') partnership probabilities by age, fitted to
-# 2018 Nigeria DHS. Rows: [age bins], [female], [male]. Values adopted from
-# hpvsim_pxv_younger/model.py (which notes the casual probs are bumped toward
-# Kaz-style near-saturation for young ages to give HPV-transmission headroom
-# during calibration).
+# Marital/casual partnership probabilities by age, fitted to 2018 Nigeria DHS.
+# Rows: [age bins], [female], [male].
 def _nigeria_layer_probs():
     return dict(
         marital=np.array([
@@ -40,11 +30,7 @@ def _nigeria_layer_probs():
 
 
 def network_pars():
-    """Nigeria-specific network pars to layer over ``hpv.NetworkPars`` defaults.
-
-    Adopted from hpvsim_pxv_younger/model.py (DHS-fit paper setup), with the
-    hpv.NetworkPars default partners_marital kept (not overridden here).
-    """
+    """Nigeria-specific network pars layered over ``hpv.NetworkPars`` defaults."""
     lp = _nigeria_layer_probs()
     pars = dict(
         debut_f=ss.lognorm_ex(loc=16.0, scale=2.0),
