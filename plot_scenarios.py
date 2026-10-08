@@ -14,14 +14,19 @@ COLORS = {'Baseline': '#c0392b', 'WHO': '#2980b9'}
 
 
 def _band(msim):
-    """Return (year, median, low, high) ASR across the MultiSim's seeds."""
-    yr = np.asarray(msim.sims[0].results['all_hpv']['timevec'])
-    arrs = np.array([np.asarray(s.results['all_hpv']['asr_cancer_incidence']) for s in msim.sims])
+    """Return (year, median, low, high) annualized ASR across the MultiSim's seeds."""
+    # ``annualize`` collapses the dt=0.25 timesteps into one value per calendar
+    # year and returns an ss.Result; ``.timevec.years`` is a numpy float array.
+    annual_sims = [s.results['all_hpv']['asr_cancer_incidence'].annualize() for s in msim.sims]
+    yr = np.asarray(annual_sims[0].timevec.years, dtype=float)
+    arrs = np.array([np.asarray(a.values) for a in annual_sims])
     return yr, np.median(arrs, 0), np.percentile(arrs, 10, 0), np.percentile(arrs, 90, 0)
 
 
-def main(n_seeds=N_SEEDS):
-    msims = rsc.run_scenarios(end=2100, n_seeds=n_seeds, do_save=True)
+def main(n_seeds=N_SEEDS, msims=None):
+    import sciris as sc
+    if msims is None:
+        msims = rsc.run_scenarios(end=2100, n_seeds=n_seeds, do_save=True)
     ut.set_font(13)
     fig, ax = plt.subplots(figsize=(9, 5))
     for name, msim in msims.items():
