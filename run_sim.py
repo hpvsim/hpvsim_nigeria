@@ -22,29 +22,34 @@ LOCATION = 'nigeria'
 
 
 # Marital ('m') and casual ('c') partnership probabilities by age, fitted to
-# 2018 Nigeria DHS. Rows: [age bins], [female], [male].
+# 2018 Nigeria DHS. Rows: [age bins], [female], [male]. Values adopted from
+# hpvsim_pxv_younger/model.py (which notes the casual probs are bumped toward
+# Kaz-style near-saturation for young ages to give HPV-transmission headroom
+# during calibration).
 def _nigeria_layer_probs():
     return dict(
         marital=np.array([
-            [0, 5, 10, 15,  20,  25,   30,   35,  40,  45,  50,  55,  60,  65,    70,   75],
-            [0, 0, 0, 0.1, 0.1, 0.15, 0.15, 0.15, 0.2, 0.3, 0.4, 0.4, 0.2, 0.07, 0.035, 0.007],
-            [0, 0, 0, 0.1, 0.1, 0.15, 0.15, 0.2,  0.2, 0.4, 0.4, 0.4, 0.2, 0.1,  0.05,  0.01]]),
+            [0, 5, 10, 15,  20,  25,  30,  35,   40,  45,  50,  55,  60,  65,    70,    75],
+            [0, 0, 0,  0.1, 0.5, 0.5, 0.4, 0.15, 0.2, 0.3, 0.4, 0.4, 0.2, 0.07, 0.035, 0.007],
+            [0, 0, 0,  0.1, 0.5, 0.5, 0.4, 0.2,  0.2, 0.4, 0.4, 0.4, 0.2, 0.1,  0.05,  0.01]]),
         casual=np.array([
-            [0, 5, 10,  15,  20,  25,  30,  35,  40,  45,  50,  55,  60,   65,   70,   75],
-            [0, 0, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.7, 0.7, 0.6, 0.2, 0.10, 0.02, 0.02, 0.02],
-            [0, 0, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.5, 0.6, 0.5, 0.2, 0.02, 0.02, 0.02, 0.02]]),
+            [0, 5, 10,  15,  20,  25,  30,  35,  40,  45,  50,  55,  60,  65,   70,   75],
+            [0, 0, 0.1, 0.8, 0.8, 0.6, 0.5, 0.4, 0.4, 0.3, 0.3, 0.2, 0.1, 0.02, 0.02, 0.02],
+            [0, 0, 0.0, 0.5, 0.6, 0.6, 0.7, 0.6, 0.5, 0.5, 0.4, 0.3, 0.1, 0.02, 0.02, 0.02]]),
     )
 
 
 def network_pars():
-    """Nigeria-specific network pars to layer over ``hpv.NetworkPars`` defaults."""
+    """Nigeria-specific network pars to layer over ``hpv.NetworkPars`` defaults.
+
+    Adopted from hpvsim_pxv_younger/model.py (DHS-fit paper setup), with the
+    hpv.NetworkPars default partners_marital kept (not overridden here).
+    """
     lp = _nigeria_layer_probs()
     pars = dict(
-        debut_f=ss.lognorm_ex(mean=16.0, std=4.0),
-        debut_m=ss.lognorm_ex(mean=18.0, std=4.0),
-        m_partners_marital=0.01,
+        debut_f=ss.lognorm_ex(loc=16.0, scale=2.0),
+        debut_m=ss.lognorm_ex(loc=19.0, scale=3.0),
         m_partners_casual=0.2,
-        f_partners_marital=0.01,
         f_partners_casual=0.2,
         layer_probs_marital=lp['marital'],
         layer_probs_casual=lp['casual'],

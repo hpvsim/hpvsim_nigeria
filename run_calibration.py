@@ -33,7 +33,7 @@ to_run = [
 ]
 debug = False
 do_save = True
-n_trials = [5000, 2][debug]
+n_trials = [2000, 2][debug]  # 2k converges — best came in by trial ~1k on the 5k run
 n_workers = [64, 2][debug]
 
 # Top-N trials to keep in the shrunken (committable) calib object.
@@ -41,22 +41,30 @@ N_KEEP = 100
 
 
 def make_calib_pars():
-    """Nested [best, low, high] specs for each calibration parameter."""
+    """Nested [best, low, high] specs for each calibration parameter.
+
+    Priors are centred on hpvsim_pxv_younger's v3.1 Nigeria best-fit pars and
+    widened to accommodate hpvsim v3.2's two cancer-affecting changes: higher
+    default post-clearance immunity (uniform(0.5, 0.95) replacing Beta mean
+    0.35) and smooth age_risk ramp (replacing the step at 30). Both reduce
+    cancer burden, so beta/f_cross_layer/rel_sev ceilings go up to let the
+    optimizer compensate.
+    """
     pars = dict(
-        beta=[0.2, 0.1, 0.34],
-        m_cross_layer=[0.3, 0.1, 0.7],
-        f_cross_layer=[0.1, 0.05, 0.5],
+        beta=[0.34, 0.15, 0.50],
+        m_cross_layer=[0.60, 0.10, 0.90],
+        f_cross_layer=[0.70, 0.20, 0.95],
         network=dict(
-            m_partners_casual=[0.2, 0.1, 0.6],
-            f_partners_casual=[0.2, 0.1, 0.6],
+            m_partners_casual=[0.37, 0.10, 0.70],
+            f_partners_casual=[0.58, 0.10, 0.90],
         ),
-        cross_immunity=dict(rel_sev=dict(loc=[1.0, 0.5, 1.5])),
+        cross_immunity=dict(rel_sev=dict(loc=[0.80, 0.30, 2.00])),
     )
     for g in ['hi5', 'ohr']:
         pars[g] = dict(
-            cancer_fn=dict(transform_prob=[1.5e-3, 0.5e-3, 2.5e-3]),
-            cin_fn=dict(k=[0.15, 0.1, 0.25]),
-            dur_cin=dict(mean=[4.5, 3.5, 5.5], std=[20, 16, 24]),
+            cancer_fn=dict(transform_prob=[1.0e-3, 0.3e-3, 3.0e-3]),
+            cin_fn=dict(k=[0.20, 0.10, 0.35]),
+            dur_cin=dict(mean=[4.5, 3.0, 7.0], std=[20, 10, 30]),
         )
     return pars
 
