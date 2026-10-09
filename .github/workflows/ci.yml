@@ -9,4 +9,5 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
+      - run: python -c "import hpvsim as hpv; hpv.data.download_data()"   # UN WPP demographics bundle (not shipped by pip)
       - run: python -m pytest tests/ -v   # incl. full-resolution ASR validation (~1-2 min)
